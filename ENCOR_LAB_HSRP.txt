@@ -1,0 +1,133 @@
+ENCOR_LAB_HSRP
+
+IP addressing 
+
+vIOS1
+enable
+configure terminal
+hostname vIOS1
+interface gi0/1
+ip address 10.1.100.1 255.255.255.0
+no shutdown
+exit
+interface gi0/0
+ip address 10.1.10.1 255.255.255.0
+no shutdown
+exit
+
+vIOS2
+enable
+configure terminal
+hostname vIOS2
+interface gi0/1
+ip address 10.1.100.2 255.255.255.0
+no shutdown
+exit
+interface gi0/0
+ip address 10.1.20.2 255.255.255.0
+no shutdown
+exit
+
+vIOS3
+enable
+configure terminal
+hostname vIOS3
+interface gi0/1
+ip address 10.1.200.3 255.255.255.0
+no shutdown
+exit
+interface gi0/0
+ip address 10.1.100.3 255.255.255.0
+no shutdown
+exit
+
+vIOS4
+enable
+configure terminal
+hostname vIOS4
+interface gi0/1
+ip address 10.1.20.4 255.255.255.0
+no shutdown
+exit
+interface gi0/0
+ip address 10.1.10.4 255.255.255.0
+no shutdown
+exit
+interface gi0/2
+ip address 192.168.37.45 255.255.255.0
+no shutdown
+exit
+interface loopback 0
+ip address 10.1.1.4 255.255.255.0
+exit
+
+Configuring EIGRP
+
+vIOS1
+router eigrp 1
+network 10.1.10.0 0.0.0.255
+network 10.1.100.0 0.0.0.255
+exit
+
+vIOS2
+router eigrp 1
+network 10.1.20.0 0.0.0.255
+network 10.1.100.0 0.0.0.255
+exit
+
+vIOS3
+router eigrp 1
+network 10.1.100.0 0.0.0.255
+network 10.1.200.0 0.0.0.255
+exit
+ip route 10.1.1.0 255.255.255.0 10.1.100.254
+exit
+
+vIOS4
+router eigrp 1
+network 10.1.10.0 0.0.0.255
+network 10.1.20.0 0.0.0.255
+network 10.1.1.0 0.0.0.255
+exit
+
+Configuring HSRP
+
+vIOS1
+interface gi0/1
+standby version 2
+standby 1 ip 10.1.100.254
+standby 1 priority 105
+standby 1 preempt
+
+vIOS2
+interface gi0/1
+standby version 2
+standby 1 ip 10.1.100.254
+
+Configuring track on vIOS1
+
+enable
+configure terminal
+track 10 interface gig0/0 line-protocol
+exit
+interface gig0/1
+standby 1 track 10 decrement 15
+
+IP SLA Tracking
+
+vIOS1
+enable 
+configure terminal
+ip sla 1
+icmp-echo 10.1.1.4
+frequency 10
+exit
+ip sla schedule 1 start-time now life forever
+track 2 ip sla 1 reachability
+interface gig0/1
+standby 1 track 2 decrement 20
+exit
+
+
+
+
